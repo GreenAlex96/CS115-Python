@@ -1,0 +1,208 @@
+'''
+Alex Reel
+Section 8
+alexander.reel@uky.edu
+Purpose: To teach students how to add, subtract, multiply, and divide fractions.
+Preconditions: Name, difficulty, and answers
+Postconditions: Feedback on what parts of the answer were correct (if any), a happy 
+or sad image depending on whether their answer was correct, and the correct answer if any part was wrong
+'''
+from graphics import *
+from random import randrange, choice
+
+def main():
+    
+    win = GraphWin('Fractions!', 400, 500)
+    y_coord = 15
+    title = Text(Point(200, y_coord), 'Fraction Tutor')
+    title.setOutline('green')
+    title.setSize(15)
+    title.draw(win)
+    
+    #1.Prompt the user to enter their name 
+    name_prompt = Text(Point(200, y_coord + 40), "What's your name?")
+    name_prompt.setSize(15)
+    name_prompt.draw(win)
+    
+    name_entry = Entry(Point(200, y_coord + 70), 15)
+    name_entry.draw(win)
+    
+    
+    #2.Prompt the user to enter a desired difficulty level
+    dif_prompt = Text(Point(200, y_coord + 110), "What difficulty do you want? (1-3)")
+    dif_prompt.setSize(15)
+    dif_prompt.draw(win)
+    
+    dif_entry = Entry(Point(200, y_coord + 140), 15)
+    dif_entry.draw(win)
+    
+    #BONUS: Ask the user the desired number of questions
+    num_questions_prompt = Text(Point(200, y_coord + 180), "How many questions do you want?")
+    num_questions_prompt.setSize(15)
+    num_questions_entry = Entry(Point(200, y_coord + 210), 15)
+    num_questions_entry.setText('1')
+    
+    num_questions_prompt.draw(win)
+    num_questions_entry.draw(win)
+   
+    win.getMouse()
+    name = name_entry.getText()
+    difficulty = dif_entry.getText()
+    num_questions = int(num_questions_entry.getText())
+    
+    name_prompt.undraw()
+    name_entry.undraw()
+    dif_prompt.undraw()
+    dif_entry.undraw()
+    num_questions_prompt.undraw()
+    num_questions_entry.undraw()
+    
+    #Problem Screen
+    name_draw = Text(Point(75, y_coord + 40), 'Student: ' + name)
+    name_draw.draw(win)
+    
+    if difficulty != '2' and difficulty != '3':
+        difficulty = '1'
+        
+    dif_draw = Text(Point(325, y_coord + 40), ('Difficulty:', difficulty))
+    dif_draw.draw(win)
+    
+    #BONUS: Start at 0 correct answers
+    num_correct = 0
+    
+    #BONUS: Give however many questions the user asked for
+    for i in range(num_questions):
+        #3. Get four random numbers for the two fractions for the problem,
+        #   using the difficulty level to decide the range of the numbers.
+        #3.1 if difficulty is 3, 
+        if difficulty == '3':
+            #use range 11 to 26 for randrange
+            numerator_1 = randrange(11, 26)
+            numerator_2 = randrange(11, 26)
+            denominator_1 = randrange(11, 26)
+            denominator_2 = randrange(11, 26)
+            
+        #else if difficulty is 2, 
+        elif difficulty == '2':
+            #use range 6 to 16 for randrange
+            numerator_1 = randrange(6, 16)
+            numerator_2 = randrange(6, 16)
+            denominator_1 = randrange(6, 16)
+            denominator_2 = randrange(6, 16)
+        #otherwise 
+        else:
+            #use range 1 to 11 for randrange
+            numerator_1 = randrange(1, 11)
+            numerator_2 = randrange(1, 11)
+            denominator_1 = randrange(1, 11)
+            denominator_2 = randrange(1, 11)
+            
+        #4. Select a random operator (+,-,*,/) to use for the problem.
+        operator = choice('+-*/')
+        
+        #display the problem
+        line_1 = Line(Point(100, y_coord + 120), Point(125, y_coord + 120))
+        line_2 = Line(Point(175, y_coord + 120), Point(200, y_coord + 120))
+        line_3 = Line(Point(300, y_coord + 120), Point(330, y_coord +120))
+        equals = Text(Point(250, y_coord + 120), '=')
+        equals.setSize(15)
+        
+        left_numerator = Text(Point(110, y_coord + 100), numerator_1)
+        left_denominator = Text(Point(110, y_coord + 140), denominator_1)
+        right_numerator = Text(Point(185, y_coord + 100), numerator_2)
+        right_denominator = Text(Point(185, y_coord + 140), denominator_2)
+        
+        left_numerator.draw(win)
+        left_denominator.draw(win)
+        right_numerator.draw(win)
+        right_denominator.draw(win)
+        
+        show_operator = Text(Point(150, y_coord + 120), operator)
+        show_operator.setSize(15)
+        show_operator.draw(win)
+    
+        
+        line_1.draw(win)
+        line_2.draw(win)
+        line_3.draw(win)
+        equals.draw(win)
+        
+        #5. if operator is +
+        #else if operator is +
+        if operator == '+':
+            #calculate correct numerator and denominator a/b+c/d = (ad+bc)/bd
+            answer_numerator = str((numerator_1 * denominator_2) + (numerator_2 * denominator_1)) 
+            answer_denominator = str(denominator_1 * denominator_2)
+        #else if operator is -
+        elif operator == '-':
+            #calculate correct numerator and denominator a/b-c/d = (ad-bc)/bd
+            answer_numerator = str((numerator_1 * denominator_2) - (numerator_2 * denominator_1))
+            answer_denominator = str(denominator_1 * denominator_2)
+        #else if operator is *
+        elif operator == '*':
+            #calculate correct numerator and denominator a/b*c/d = ac/bd
+            answer_numerator = str(numerator_1 * numerator_2)
+            answer_denominator = str(denominator_1 * denominator_2)
+        #otherwise (division)
+        else: 
+            #calculate correct numerator and denominator a/b/c/d = ad/bc
+            answer_numerator = str(numerator_1 * denominator_2)
+            answer_denominator = str(numerator_2 * denominator_1)
+    
+        #6. get answers for numerator and denominator from user
+        numerator_entry = Entry(Point(315, y_coord + 100), 3)
+        denominator_entry = Entry(Point(315, y_coord + 140), 3)
+        
+        numerator_entry.draw(win)
+        denominator_entry.draw(win)
+        
+        win.getMouse()
+        user_numerator = numerator_entry.getText()
+        user_denominator = denominator_entry.getText()
+        
+        happy = Image(Point(200, y_coord + 250), "happy.gif")
+        sad = Image(Point(200, y_coord + 250), "sad.gif")
+    
+        #7.if both answers correct
+        if (user_numerator == answer_numerator) and (user_denominator == answer_denominator):
+            #give correct feedback
+            feedback = Text(Point(200, y_coord + 400), "You're right, " + name + "!!!")
+            feedback.draw(win)
+            happy.draw(win)
+            num_correct += 1
+        #else if numerator is wrong and denominator is  right
+        elif (user_numerator != answer_numerator) and (user_denominator == answer_denominator):
+            #give feedback  about that part
+            feedback = Text(Point(200, y_coord + 400), name + ', your numerator should be ' + answer_numerator)
+            feedback.draw(win)
+            sad.draw(win)
+        #else if numerator is right and denominator is wrong
+        elif (user_numerator == answer_numerator) and (user_denominator != answer_denominator):
+            #give feedback about that part
+            feedback = Text(Point(200, y_coord + 400), name + ', your denominator should be ' + answer_denominator)
+            feedback.draw(win)
+            sad.draw(win)
+        #otherwise both answers wrong
+        else:
+            #give complete feedback about both parts
+            feedback = Text(Point(200, y_coord + 400), name + ', the right answer is ' + answer_numerator + ' / ' + answer_denominator)
+            feedback.draw(win)
+            sad.draw(win)
+            
+        win.getMouse()
+        
+        left_numerator.undraw()
+        left_denominator.undraw()
+        right_numerator.undraw()
+        right_denominator.undraw()   
+        show_operator.undraw()
+        feedback.undraw()
+        happy.undraw()
+        sad.undraw()
+                   
+    result = Text(Point(200, y_coord + 200), "You got " + str(num_correct) + " correct, " + name)
+    result.draw(win)
+
+    win.getMouse()
+    win.close()
+main()

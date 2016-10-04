@@ -1,0 +1,518 @@
+'''
+Alex Reel
+Section 8
+alexander.reel@uky.edu
+purpose: allow users to search, edit, and display elements of a database
+    preconditions: database list, actions to take on the database
+    postconditions: whatever changes were made to the loaded database/a newly made database'''
+
+#load
+def load():
+
+    '''Purpose: retrieve a database list from a file on secondary storage
+    Preconditions: no parameters, user enters filenames until a valid one is entered,
+        user must hit Enter
+    Postconditions: returns the database (an organized list with no newlines), outputs prompts to user
+      until valid filename is entered'''
+    
+    
+    #display name of menu choice "Load"
+    print('\nLoading a database file\n\nFilename will have a .db extension added, do not enter it')
+    
+    #asks the user for a filename and  adds the .db extension.
+    user_file = input('Enter a filename: ')
+    #opens it if possible, asks user for another if the first won't open.
+    #Code for this task, using try/except, is on the class web site.
+    opened = False
+    while not opened:
+        ext_file = user_file + '.db'
+        try:
+            open_file = open(ext_file)
+            opened = True
+        except IOError:
+            print('Error, file would not open')
+            user_file = input('Enter a filename: ')      
+    
+    #start database list as empty
+    database = []
+    #loop for each line in the file
+    for line in open_file:
+    #   split into 4 field strings
+        db_entry = line.split(',')
+    #   strip newline off
+        db_entry[3] = db_entry[3].strip()
+    #   add to database list
+        database.append(db_entry)
+    #close file
+    open_file.close()
+    #tell user database is loaded
+    print('Database loaded\n')
+    #pause for Enter
+    input('Press Enter ')
+    #return database list
+    return database
+
+#save
+def save(db):
+
+    '''Purpose: write out a database list to a file on secondary storage
+    Preconditions:  parameter is the database list, user must enter filename for writing to,
+        user must hit Enter
+    Postconditions:  list is written to file in form that can be read in by load function,
+        user is informed that the file is written
+        database is NOT changed'''
+    
+    #display name of menu choice "Save"
+    print('\nSaving a database file\n\nFilename will have a .db extension added, do not enter it')
+    
+    #asks the user for a filename, adds the .db extension.
+    user_file = input('Enter a filename: ')
+    ext_file = user_file + '.db'
+    
+    #opens it, 
+    db_file = open(ext_file, 'w')
+    
+    #for each record in database file
+    for record in db:
+    #   writes the data in the database list to the file given in a way that could be read back in by the load function.
+        for ele in record:
+            if ele == record[3]:
+                db_file.write(ele + '\n')
+            else:
+                db_file.write(ele + ',')
+        
+    #closes file
+    db_file.close()
+    #tells the user database is saved
+    print('\nFile saved\n')
+    
+    #pause for Enter
+    input('Press Enter')
+    
+#change_status
+def change_status(db):
+    '''Purpose:  allow the user to choose a record, enter new information for the record's
+      location field, validate it, make sure the user wants to change the database and
+      follow the user's instructions
+    Preconditions: parameter is the database list, user must enter record number and new location,
+      user must enter Y or N to "are you sure?" question, user must hit Enter
+    Postconditions: no return value, database list is changed if user oks it'''
+    
+    #display name of menu choice "Change Status and Location"
+    print('\nChange an item\'s status\n')
+    
+    if db == []:
+        print('There are no records to change\n')
+        
+    else:
+        print(pad_strings('', 5) + pad_strings('Name', 20) + pad_strings('Date Purchased', 20) + pad_strings('Status', 20) + 'Location')
+        #display records in database, with record numbers
+        for records in range(len(db)):
+            print(pad_strings(str(records+1), 4), end='') 
+            displayRecord(db[records], 20,)
+        #asks the user which record they want 
+        #verify the input
+        invalid = True
+        selection = input('\nWhich record? ')
+        while invalid:
+            try:
+                selection = int(selection)
+                if selection in range(len(db)+1):
+                    invalid = False
+                else:
+                    print('Not a valid choice')
+                    selection = input('Which record? ')                
+            except ValueError:
+                print('Not a valid choice')
+                selection = input('Which record? ')
+        record = db[selection-1]
+    
+        #if the status in the record is IN, 
+        if record[2] == 'IN':
+            #it is changed to OUT and vice versa
+            record[2] = 'OUT'
+        elif record[2] == 'OUT':
+            record[2] = 'IN'
+             
+        #The user is asked for the new location (which is checked for commas)
+        new_loc = input('New location? ')
+        new_loc = new_loc.replace(',', ' ')
+        new_loc = new_loc.strip()
+        record[3] = new_loc
+        
+        #The user is asked to verify that they do want to change the record as given
+        displayRecord(record, 20)
+        change = verifyYN('Do you want to make the change? ')
+        
+        #If they say no
+        #    the database is NOT changed
+        #User is told what was done to the database
+        #otherwise 
+        if change == 'Y':
+        #   the database has the new info put in it.
+            db[selection-1] = record
+            print('\nStatus and location changed\n')
+        else:
+            print('\nThe record is unchanged\n')
+
+    #pause for Enter
+    input('Press Enter ')
+    
+#remove_data 
+def remove_data(db): 
+    '''Purpose:  allows user to choose one record to be removed from database list,
+      verifies that user wants to do it, then removes it from the list
+    Preconditions: parameter: the database list, the user hits Enter
+    Postconditions:  database records displayed, user prompts, no return value,
+       database MAY be changed'''
+    
+    #display name of menu choice "Remove Record"
+    print('\nRemove Record\n')
+    
+    if db == []:
+        print('There are no records to remove\n')
+        
+    else:
+        #display the records in the database, with record numbers
+        print(pad_strings('', 5) + pad_strings('Name', 20) + pad_strings('Date Purchased', 20) + pad_strings('Status', 20) + 'Location')
+    
+        for records in range(len(db)):
+            print(pad_strings(str(records+1), 4), end='') 
+            displayRecord(db[records], 20,)    
+        #asks the user which record 
+        invalid = True
+        selection = input('Which record? ')
+        #while user answer not valid
+        while invalid:
+            try:
+                selection = int(selection)
+                if selection in range(len(db)+1):
+                    invalid = False
+                else:
+                #error message    
+                    print('Not a valid choice')
+                    selection = input('Which record? ')    
+            #asks the user which record                 
+            except ValueError:
+                print('Not a valid choice')
+                selection = input('Which record? ')    
+    
+        #display that record (only) 
+        print('\n', end=''), displayRecord(db[selection-1], 20)
+        #ask the user to verify that they do want to remove.
+        change = verifyYN('\nDo you want to delete this record? ')
+        #If they say no the database is not changed, otherwise the record is removed.
+        if change == 'Y':
+            del db[selection-1]
+            print('\nRecord removed\n')
+        else:
+            print('\nRecord unchanged\n')
+        
+    #pause for Enter
+    input('Press Enter')
+    
+#query
+def query(db):
+    '''Purpose:  allow the user to ask for records matching given value in chosen field
+        to be displayed
+    Preconditions:  parameter database list, user enters field choice, value to search for
+        user hits Enter
+    Postconditions: database records may or may not be displayed, 
+         record count of hits displayed, waits for Enter
+        database is NOT changed, no return value'''
+    
+    #display name of menu choice "Query"
+    print('\nQuerying the Database\n')
+    
+    #ask the user which field they want to query about (validated)
+    print('Which field to query?')
+    field = int(get_field_choice())
+            
+    #ask the user what value to search for
+    search = input('\nWhat value to look for? ')
+    print('\n', end='')
+    #initialize reccount
+    count = 0
+    #for each record in the database list
+    for record in db:
+    #   if the value given is in the field chosen
+        if record[field-1] == search:
+            #display record
+            displayRecord(record, 20)
+            #increment reccount
+            count += 1
+    
+    #report reccount 
+    if count == 1:
+        print('\n', count, ' record found\n', sep='')
+    else:
+        print('\n', count, ' records found\n', sep='')
+    #pause for Enter
+    print('Press Enter')
+    
+#sort_db
+def sort_db(db):
+    '''Purpose: to allow the user to choose which field to sort by, and which
+      direction to sort the records in the database
+    Preconditions:  database list, user choice of fields, user choice of direction (A/D)
+    Postconditions:   display of field choices, ask user direction, ask user to verify
+       that they want to do this, wait for Enter, database MAY be changed'''
+    
+    #display name of menu choice "Sort"
+    print('\nSorting the Database\n')
+    
+    #ask the user which field to sort by (validated)
+    print('Which field to sort by?')
+    field = get_field_choice()
+    #ask direction (Ascending or Descending) (validated)
+    direction = input('\nAscending(A) or Descending(D)? ')
+    while direction.upper() != 'A' and direction.upper() != 'D':
+        print('That is not a valid choice')
+        direction = input('Ascending(A) or Descending(D)? ')
+    #ask the user if they are sure they want to sort the database
+    sort = verifyYN('\nAre you sure you want to sort the database? ')
+    #if they say Y
+    if sort == 'Y':
+        #sort using the selection sort algorithm ascending
+        #(find minimum, swap into first location, repeat with smaller unsorted list)
+        for i in range(len(db)-1):
+            small = find_min(db[i:], int(field))
+            db[i], db[small+i] = db[small+i], db[i]   
+                
+        #adjust the database for the direction desired (reverse for descending)
+        if direction.upper() == 'D':
+            db.reverse()
+        #report the database is sorted
+        print('\nDatabase sorted')
+    #else
+    else:
+        #report database not sorted
+        print('\nThe database was not sorted')
+    #pause for Enter
+    input('\nPress Enter')
+    
+#get_new_entry
+def get_new_entry(db):
+    '''Purpose: allow the user to enter the data for all four fields of a record,
+       validate them, verify that the user wants to add the record to the database
+       and perform the user's instruction
+    Preconditions:  database list, user inputs for fields
+    Postconditions:  prompts for inputs, verify user wants to add the record,
+       waits for Enter, no return value, database MAY be changed'''
+    
+    #display name of menu choice "Get New Entry"
+    print('\nGet New Entry')
+    
+    #ask the user for the data of a record
+    item = input('Item name? ')
+    record = [item]
+    date = input('Date bought (YYYY/MM/DD)? ')
+    record.append(date)
+    status = input('Status (IN/OUT)? ')
+    record.append(status)
+    location = input('Location? ')
+    record.append(location)
+    
+    #validate as possible by removing any commas in input
+    for data in range(len(record)):
+        record[data] = record[data].replace(',', ' ')
+    
+    #display the record  made from user inputs
+    print('\n', end=''), displayRecord(record, 20)
+    #ask if they really want to add it to the database
+    add = verifyYN('\nDo you want to add this record? ')
+    
+    #if they say yes
+    if add == 'Y':
+        #add it to the end of the database
+        db.append(record)
+        print('\nRecord added')
+    #otherwise
+    else:
+        #do not change the database
+        print('\nDatabase is unchanged')
+    
+    #pause for Enter
+    input('\nPress Enter')
+
+#display_db 
+def display_db(db):    
+    '''Purpose:  to show all the records of the database list in readable form on
+       the screen, with or without record numbers
+    Preconditions:  the database list and whether to show numbers or not
+    Postconditions: the database list contents in columns, with record numbers
+       on the left side if showing numbers flag is True, no return value
+       database will NOT be changed'''
+    
+    #ask if line numbers will be used
+    print('\nDatabase Report')
+    line_nums = verifyYN('Use line numbers? ')
+    #display database
+    #add extra space for line numbers if needed
+    if line_nums == 'Y':
+        print(pad_strings('', 5), end='')
+    #display headers
+    print(pad_strings('Name', 20) + pad_strings('Date Purchased', 20) + pad_strings('Status', 20) + 'Location')
+    for records in range(len(db)):
+        if line_nums == 'Y':
+            #add line numbers
+            print(pad_strings(str(records+1), 4), end='') 
+        displayRecord(db[records], 20,)  
+   
+    #wait for enter
+    input('Press Enter')
+
+#get_menu_choice
+def get_menu_choice():
+    '''Purpose: displays main menu, gets user's choice and validates it, returns it
+    Precondition: no parameter, user's input of choice(s),
+    Postcondition: returns choice as single character string "1" to "9"'''
+    
+    #display main menu
+    print('Main Menu\n\n1. Load database\n2. Save (close) database\n3. Query (search)\n4. Display database\n5. Sort\n6. Enter new item\n7. Remove item\n8. Change status and location of item\n9. Exit')
+    #ask for user choice
+    action = input('Choose item from menu: ')
+    valid = False
+    #while user choice not valid
+    while not(valid):
+        if action in ['1', '2', '3', '4', '5', '6', '7', '8', '9']:
+            valid = True
+        else:
+            #error message
+            print('Not a valid choice')
+            #ask for user choice
+            action = input('Choose item from menu: ')
+    #return user choice
+    return action
+    
+#get_field_choice
+def get_field_choice():
+    '''purpose:  to ask the user which field they want to use, validate the response and return it
+    preconditions:  no parameter, display list of 4 fields, ask user for choice,
+        error message if necessary
+    postconditions: returns the user's choice "1" through "4"'''
+    
+    #display 4 choices
+    print('1. Item name\n2. Date bought\n3. Status\n4. Location')
+   
+    #ask user for choice
+    valid = False
+    field = input('Which field? ')
+    #while choice not valid
+    while not(valid):
+        if field in ['1', '2', '3', '4']:
+            valid = True
+        else:
+            #error message
+            print('Not a valid choice')
+            #ask user for choice
+            field = input('Which field? ')
+    
+    #return user choice as single character string "1" through "4"
+    return field
+
+#find_min 
+def find_min(db, field):
+    '''purpose:  to find the location of the lowest value in the database
+         list, in the chosen field
+    pre-conditions:  parameters: database list and choice of field (1-4)
+    post-conditions: returns location of minimum value in field chosen
+       database does NOT change'''
+    
+    #initialize location to zero  (lowest seen so far)
+    loc = 0
+    #for each entry in the database list
+    for record in range(1, len(db)):
+       #if the current value of the chosen field is less than the lowest value of the field seen so far
+        if db[record][field-1] < db[loc][field-1]:
+            #change location to be the current location
+            loc = record
+    
+    #return the location of lowest seen so far
+    return loc
+    
+    
+#verifyYN
+def verifyYN(question):
+    '''Purpose: ask the user a question, get an answer and
+       make sure it is only Yes or No ("Y" or "N")
+    Precondition:  prompt string to ask the user
+    Postcondition: user's answer as either "Y" or "N"'''
+    
+    #ask user the question
+    answer = input(question)
+    #while answer is not valid
+    while answer.upper() != 'Y' and answer.upper() != 'N':
+        #error message
+        print('That is not a valid answer')
+        #ask user the question
+        answer = input(question + '(y/n) ')
+    #return the user's answer
+    return answer.upper()
+    
+#displayRecord 
+def displayRecord(record, width):
+    '''Purpose:  display a record with 4 fields on the screen
+    Preconditions:  record (list with 4 elements) and width of column desired
+    Postconditions:  output to screen, no return value
+       record is NOT changed'''
+      
+    #display each field, padded with spaces and trimmed to be width of column,on the same line
+    #end with a newline
+    print(pad_strings(record[0], width) + pad_strings(record[1], width) + pad_strings(record[2], width) + record[3])
+    
+#pad_string(msg, columnwidth):
+def pad_strings(msg, columnwidth):
+    '''purpose: add spaces to a msg string until it is wider than the column width
+    provided, then slice off the first column width's worth of characters and
+    return the slice
+    preconditions:  msg string and column width (integer)
+    postconditions: returns the msg string padded with spaces and then sliced
+    to the given column width'''
+            
+    #add on column width amount of spaces to the msg string
+    msg += ' '*columnwidth
+    #slice it to the column width desired
+    #(if msg string is empty, column width spaces will be returned.
+    #if msg string is already longer than column width, the part that is
+    #longer than the column width will be removed, along with extra spaces added)
+    formatted = msg[0:columnwidth+1]
+    #return resulting string
+    return formatted
+
+def main():
+    
+    #set database list to empty
+    db = []
+    #get menu choice
+    choice = get_menu_choice()
+    #while choice != '9'
+    while choice != '9':
+        #if choice is '1'
+        if choice == '1':
+            #call load
+            db = load()
+        #else if choice is '2'
+        elif choice == '2':
+            #call save
+            save(db)
+        #else if choice is '3'
+        elif choice == '3':
+            #call query
+            query(db)
+        #etc.
+        elif choice == '4':
+            display_db(db)
+        elif choice == '5':
+            sort_db(db)
+        elif choice == '6':
+            get_new_entry(db)
+        elif choice == '7':
+            remove_data(db)
+        elif choice == '8':
+            change_status(db)
+    
+        #get menu choice
+        choice = get_menu_choice()
+        
+main()

@@ -1,0 +1,401 @@
+'''
+Alex Reel
+Section 8
+alexander.reel@uky.edu
+Purpose:  to play the Chuck-A-Luck game with a user, letting
+
+            them bet on the outcome of 3 dice rolls
+
+           Play continues until the user quits or until they lose all their money
+
+Pre-conditions:  amount to bet, number to bet on, yes/no to continue
+
+Post-conditions:  displays rolls as dice, reports on win/loss, asks play again?
+'''
+from graphics import *
+from random import randrange
+
+#draw_dice
+def draw_dice(x, y, die, win):
+   '''
+   Purpose:
+   
+      draw a dice image on the screen at the location given, using
+   
+        the corresponding gif file
+   
+   Pre-conditions:  (int) x and y of location, (int) number of the die, 
+   
+        (GraphWin) graphics window
+   
+   Post-condition:  (Image) returns the Image object created
+   
+   '''
+
+
+   #create a point for location of the die
+   draw_point = Point(x,y)
+
+   #create filename string using number of the die and ".gif"
+   die_num = str(die) + '.gif'
+
+   #create the image object with the point and the correct die gif
+   image = Image(Point(x, y), die_num)
+   
+   #draw it
+   image.draw(win)
+
+   #return it
+   return image
+
+
+
+
+#getbet
+def getbet(pot, win):
+   '''
+   Purpose:  get the amount of the bet from the user
+   
+        while not letting the user bet less than 1 dollar and not more
+   
+         than they have in the pot
+   
+   Pre-conditions:  (int) the amount of the pot and the graphics window
+   
+   Post-conditions:  (int) the validated user's input (from 1 to amount of pot)
+   '''
+      
+
+
+   #prompt the user for an amount
+   bet_prompt = Text(Point(win.getWidth()/2, 75), 'What do you want to bet? (1-' + str(pot) + ')')
+   bet_prompt.draw(win)
+   bet_entry = Entry(Point(win.getWidth()/2, 100), 3)
+   bet_entry.setText('1')
+   bet_entry.draw(win)
+   win.getMouse()
+   
+   #get user's input
+   bet = int(bet_entry.getText())
+
+  
+
+   #with a loop, validate the user's input (while user's input is not in range)
+   while not bet in range(1, pot + 1):
+
+      #if it's too low, you have to bet at least 1 dollar
+      if bet < 1:
+         too_little = Text(Point(win.getWidth()/2, 125), 'You have to bet something!')
+         too_little.draw(win)
+         win.getMouse()
+         too_little.undraw()
+                           
+      #else (too high), you don't have that much money
+      else:
+         too_much = Text(Point(win.getWidth()/2, 125), "You don't have that much money!")
+         too_much.draw(win)
+         win.getMouse()
+         too_much.undraw()
+
+      #prompt and get user's input
+      bet = int(bet_entry.getText())
+
+   
+
+   #clean up any objects drawn
+   bet_prompt.undraw()
+   bet_entry.undraw()
+    
+
+   #return validated user's input
+   return bet
+
+
+
+
+
+#getnumber
+def getnumber(win):
+   '''
+   Purpose:
+   
+       get the die number the user wants to bet on (1-6)
+   
+   Pre-conditions:  graphics window
+   
+   Post-conditions:   validated user's input (1-6)
+   '''
+ 
+
+   #prompt the user for a number
+   die_prompt = Text(Point(win.getWidth()/2, 75), 'Which number to bet on? (1-6)')
+   die_prompt.draw(win)
+   die_entry = Entry(Point(win.getWidth()/2, 100), 3)
+   die_entry.setText('1')
+   die_entry.draw(win)
+   
+   win.getMouse()
+   die = die_entry.getText()
+  
+
+   #with a loop, validate the user's input (while the input is not valid)
+   while (len(die) > 1) or (not die in '123456'):
+
+      #if it's invalid, "that's not a valid bet!"
+      invalid = Text(Point(win.getWidth()/2, 125), "That's not a valid bet!")
+      invalid.draw(win)
+
+      #prompt and get user's input
+      win.getMouse()
+      die = die_entry.getText()
+      invalid.undraw()
+
+   
+
+   #convert user's input to an integer
+   die = int(die)
+
+   #clean up any objects drawn
+   die_prompt.undraw()
+   die_entry.undraw()
+
+   #return validated user's input
+   return die
+
+
+
+
+
+#check_matches 
+def check_matches(roll1, roll2, roll3, user_roll):
+   '''
+   Purpose:  compare the user's roll to the three rolls 
+   
+        and find out if there are 0, 1, 2, or 3 matches
+   
+   Pre-conditions:  three rolls and user's roll
+   
+   Post-conditions:  0-3, number of matches
+   '''
+
+
+
+   #initialize counter to zero
+   matches = 0
+
+   #if user's roll matches first roll
+   if user_roll == roll1:
+
+      #increment counter 
+      matches += 1
+
+   #if user's roll matches second roll
+   if user_roll == roll2:
+
+      #increment counter 
+      matches += 1
+
+   #if user's roll matches third roll
+   if user_roll == roll3:
+
+      #increment counter 
+      matches +=1
+
+   #return counter
+   return matches
+
+ 
+
+
+
+#in_box 
+def in_box(top_left, lower_right, click):
+   '''
+   Purpose:  
+   
+       to test a point to see if it is in a box defined by
+   
+        two other points (upper right and lower left) 
+   
+   Pre-conditions:  two points that define the box, a third point
+   
+   Post-conditions:  True if point3 is inside the box,
+   
+       False if not
+   '''
+
+
+   #initialize flag
+   box_click = False
+
+   #if the point's X is inside the other points' X's and
+   #the point's Y is inside the other points' Y'
+   if (top_left.getX() < click.getX() < lower_right.getX()) and (top_left.getY() < click.getY() < lower_right.getY()):
+      #flag is set True
+      box_click = True
+
+   #return the flag
+   return box_click
+
+
+
+#playagain
+def playagain(win):
+   '''
+   Purpose:  
+   
+      ask the user if they want to play again, get their
+   
+       Yes or No response, validated by ignoring any clicks
+   
+       anywhere on the screen except in the Yes and No boxes
+   
+   Pre-conditions:   the graphics window
+   
+   Post-conditions:  a bool value, True means the user chose Yes,
+   
+       False otherwise
+   '''
+
+
+   #draw two boxes and label one Yes and one No
+   box1_top = Point(150, 300)
+   box1_bottom = Point(200, 400)
+   box1 = Rectangle(box1_top, box1_bottom)
+   yes_text = Text(Point(175, 350), 'YES')
+   box2_top = Point(300, 300)
+   box2_bottom = Point(350, 400)
+   box2 = Rectangle(box2_top, box2_bottom)
+   no_text = Text(Point(325, 350), 'NO')
+   box1.draw(win)
+   yes_text.draw(win)
+   box2.draw(win)
+   no_text.draw(win)
+
+   #display a prompt "do you want to play another game?"
+   play_prompt = Text(Point(win.getWidth()/2, 75), 'Do you want to play again?')
+   play_prompt.draw(win)
+
+   #get a user's click
+   click = win.getMouse()
+
+   #while the user does not click in one of the boxes
+   while (not in_box(box1_top, box1_bottom, click)) and (not in_box(box2_top, box2_bottom, click)):
+      #tell them that is not a valid response
+      invalid = Text(Point(win.getWidth()/2, 100), 'Click yes or no')
+      invalid.draw(win)
+
+      #get another click
+      click = win.getMouse()
+      invalid.undraw()
+
+
+
+   #clean up objects drawn
+   box1.undraw()
+   box2.undraw()
+   yes_text.undraw()
+   no_text.undraw()
+   play_prompt.undraw()
+
+   #return True if the user chose the Yes box, False otherwise
+   if in_box(box1_top, box1_bottom, click):
+      replay = True
+   elif in_box(box2_top, box2_bottom, click):
+      replay = False
+      
+   return replay
+
+def main():
+   
+   win = GraphWin('Chuck-A-Luck', 500, 550)
+   
+   #initialize playagain flag
+   repeat = True
+   
+   #set initial pot amount
+   pot = 100
+    
+   #display title
+   title = Text(Point(win.getWidth()/2, 15), 'Chuck-A-Luck')
+   title.setStyle('bold')
+   title.setSize(20)
+   title.draw(win)
+   
+   #while playagain and pot isn't empty
+   while repeat and (pot != 0):
+    
+      #get the user's bet amount ($)
+      bet = getbet(pot, win)
+   
+      #get the number the user wants to bet on (1-6)
+      die_bet = getnumber(win)
+    
+      #get three random numbers for the three rolls 
+      roll1 = randrange(1, 7)
+      roll2 = randrange(1, 7)
+      roll3 = randrange(1, 7)
+    
+      #draw the corresponding dice using draw_dice
+      die1 = draw_dice(100, 200, roll1, win)
+      die2 = draw_dice(250, 200, roll2, win)
+      die3 = draw_dice(400, 200, roll3, win)
+    
+      #find out the number of matches using check_matches
+      matches = check_matches(roll1, roll2, roll3, die_bet)
+    
+      #report the result
+      if matches == 0:
+         pot -= bet
+         results = Text(Point(win.getWidth()/2, 400), 'None matched, you lost ' + str(bet) + '$')
+      elif matches == 1:
+         pot += bet
+         results = Text(Point(win.getWidth()/2, 400), 'You matched one, you win ' + str(bet) + '$')
+      elif matches == 2:
+         pot += (bet*5)
+         results = Text(Point(win.getWidth()/2, 400), 'You matched two, you win ' + str(bet * 5) + '$')
+      else:
+         pot += (bet*10)
+         results = results = Text(Point(win.getWidth()/2, 400), 'You matched three, you win ' + str(bet * 10) + '$')
+         
+      results.draw(win)
+    
+      
+      #report the amount of the pot
+      current_pot = Text(Point(win.getWidth()/2, 425), 'You have ' + str(pot) + '$')
+      current_pot.draw(win)
+    
+      #wait for click
+      win.getMouse()
+      results.undraw()
+      current_pot.undraw()
+      die1.undraw()
+      die2.undraw()
+      die3.undraw()
+    
+      #if the pot isn't zero,
+      if pot != 0:
+         #ask the user if they want to play again and make playagain flag
+         #True if they do, False if they don't
+         repeat = playagain(win)
+    
+   #show the final results of the game
+   #if the user left with money
+   if pot != 0:
+      #tell them how much
+      result = Text(Point(win.getWidth()/2, 300), 'You left with ' + str(pot) + '$')
+    
+   #else 
+   else:
+      #tell them they lost
+      result = Text(Point(win.getWidth()/2, 300), 'Sorry, you lost!')
+   
+   result.draw(win)
+   
+   #wait for click
+   win.getMouse()
+    
+   #shut down window and program
+   win.close()
+   
+main()
